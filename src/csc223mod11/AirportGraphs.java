@@ -1,7 +1,13 @@
 package csc223mod11;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Scanner;
@@ -10,7 +16,7 @@ public class AirportGraphs {
 
 	public static void main(String[] args) {
 
-		Graph graph = loadDataFromFile("AdjacencyList.txt");
+		Graph graph = loadDataFromFile("Airport_AdjacencyList.txt");
 		Scanner scan = new Scanner(System.in);
 
 		while (true) {
@@ -26,7 +32,7 @@ public class AirportGraphs {
 				summarizeDataset(graph);
 				break;
 			case 2:
-				calculateFlightPath();
+				calculateFlightPath(graph);
 				break;
 			case 3:
 				System.out.println("Exiting application.");
@@ -44,6 +50,8 @@ public class AirportGraphs {
 		int numberOfRoutes = graph.getAllRoutes().size();
 		System.out.println("Number of airports: " + numberOfAirports);
 		System.out.println("Number of direct flights: " + numberOfRoutes);
+		
+		// check getAllRoutes
 	}
 
 	private static void calculateFlightPath(Graph graph) {
@@ -63,7 +71,7 @@ public class AirportGraphs {
 		System.out.print("The flight path is: ");
 		int totalDistance = 0;
 		for (Route route : path) {
-			System.out.print(route.getSource().getCode() + " - " + route.getDestination().getCode() + " ");
+			System.out.print(route.getSource() + " - " + route.getDestination() + " ");
 			totalDistance += route.getDistance();
 		}
 		System.out.println("\nThe total flight distance is " + totalDistance + " miles.");
@@ -72,30 +80,61 @@ public class AirportGraphs {
 	public static Graph loadDataFromFile(String filename) {
 
 		Graph graph = new Graph();
+		
+		URL url = AirportGraphs.class.getResource(filename);
+		if (url != null) {
+		    Path path;
+			try {
+				path = Paths.get(url.toURI());
+			    List<String> lines = Files.readAllLines(path);
+			    // Process lines
+		        for (String line : lines) {
+		            // Process the line
+					String[] parts = line.split(": ");
+					String sourceCode = parts[0];
+					graph.addAirport(sourceCode);
 
-		try {
-			List<String> lines = Files.readAllLines(Paths.get(filename));
-
-			for (String line : lines) {
-				String[] parts = line.split(": ");
-				String sourceCode = parts[0];
-				graph.addAirport(sourceCode);
-
-				if (parts.length > 1) {
-					String[] connections = parts[1].split(", ");
-					for (String connection : connections) {
-						String[] routeParts = connection.split("-");
-						String destinationCode = routeParts[0];
-						int distance = Integer.parseInt(routeParts[1]);
-						graph.addRoute(sourceCode, destinationCode, distance);
+					if (parts.length > 1) {
+						String[] connections = parts[1].split(", ");
+						for (String connection : connections) {
+							String[] routeParts = connection.split("-");
+							String destinationCode = routeParts[0];
+							int distance = Integer.parseInt(routeParts[1]);
+							graph.addRoute(sourceCode, destinationCode, distance);
+						}
 					}
-				}
+		        }
+			} catch (URISyntaxException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 
+		}
+//		if (inputStream != null) {
+//		    // Read the file using the inputStream
+//		    try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+//		        String line;
+//		        while ((line = reader.readLine()) != null) {
+//		            // Process the line
+//					String[] parts = line.split(": ");
+//					String sourceCode = parts[0];
+//					graph.addAirport(sourceCode);
+//
+//					if (parts.length > 1) {
+//						String[] connections = parts[1].split(", ");
+//						for (String connection : connections) {
+//							String[] routeParts = connection.split("-");
+//							String destinationCode = routeParts[0];
+//							int distance = Integer.parseInt(routeParts[1]);
+//							graph.addRoute(sourceCode, destinationCode, distance);
+//						}
+//					}
+//		        }
+//		    } catch (IOException e) {
+//		        e.printStackTrace();
+//		    }
+//		}
+		
 		return graph;
 	}
-
 }
